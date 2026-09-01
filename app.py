@@ -33,7 +33,7 @@ st.caption("Veille ransomware et exposition des organisations camerounaises")
 
 with st.sidebar:
     st.header("Sources")
-    ransomlook_url = st.text_input("URL API RansomLook", value="https://api.ransomlook.io")
+    ransomlook_url = st.text_input("URL API RansomLook", value="https://www.ransomlook.io")
     demo_mode = st.toggle("Mode démo", value=True, help="Utilise des données locales sans appeler l'API.")
     company_query = st.text_input("Entreprise ou domaine", placeholder="Ex. entreprise.cm")
     st.divider()
