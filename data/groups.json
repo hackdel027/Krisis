@@ -1,0 +1,6 @@
+[
+  {"name": "LockBit", "region": "International", "status": "Actif / fluctuant", "notes": "Groupe fréquemment observé dans les rapports publics."},
+  {"name": "RansomHub", "region": "International", "status": "Actif", "notes": "A surveiller dans les sources publiques et les signalements."},
+  {"name": "Qilin", "region": "International", "status": "Actif", "notes": "Présence régulièrement rapportée dans les flux publics."},
+  {"name": "APT / groupes régionaux", "region": "Afrique", "status": "À qualifier", "notes": "Catégorie de recherche à enrichir avec les sources CERT et CTI."}
+]
