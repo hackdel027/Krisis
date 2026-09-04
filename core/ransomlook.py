@@ -17,40 +17,61 @@ class RansomLookClient:
         normalized = self.base_url.rstrip("/")
         if normalized.startswith("https://api.ransomlook.io"):
             normalized = normalized.replace("https://api.ransomlook.io", "https://www.ransomlook.io")
-        return normalized
+        if normalized.endswith("/api"):
+            return normalized
+        return f"{normalized}/api"
 
-    def _get(self, paths: list[str]) -> Any:
-        base_url = self._normalized_base_url()
-        last_error: Exception | None = None
-        for path in paths:
-            candidate = path.lstrip("/")
-            if candidate.startswith("api/") and base_url.endswith("/api"):
-                candidate = candidate[4:]
-            url = f"{base_url.rstrip('/')}/{candidate}"
-            try:
-                response = requests.get(url, timeout=self.timeout)
-                response.raise_for_status()
-                return response.json()
-            except (requests.RequestException, ValueError) as error:
-                last_error = error
-        raise RuntimeError(f"RansomLook indisponible: {last_error}")
+    def _get(self, path: str, params: dict[str, Any] | None = None) -> Any:
+        url = f"{self._normalized_base_url().rstrip('/')}/{path.lstrip('/')}"
+        try:
+            response = requests.get(url, timeout=self.timeout, params=params)
+            response.raise_for_status()
+            return response.json()
+        except (requests.RequestException, ValueError) as error:
+            raise RuntimeError(f"RansomLook indisponible: {error}") from error
 
     def recent_posts(self, limit: int = 100) -> list[dict[str, Any]]:
-        payload = self._get(["api/recent", "recent", "api/posts"])
+        payload = self._get("posts", params={"days": 7})
         records = payload if isinstance(payload, list) else payload.get("posts", payload.get("data", []))
-        return [record for record in records if isinstance(record, dict)][:limit]
+        posts = [record for record in records if isinstance(record, dict)]
+        return posts[:limit]
 
     def search(self, query: str, limit: int = 100) -> list[dict[str, Any]]:
         normalized_query = query.casefold().strip()
-        return [
-            post for post in self.recent_posts(limit=limit)
+        if not normalized_query:
+            return []
+        payload = self._get("search", params={"q": query})
+        if isinstance(payload, list):
+            records = payload
+        elif isinstance(payload, dict):
+            records = []
+            for key in ("posts", "results", "data", "groups", "markets", "notes"):
+                value = payload.get(key)
+                if isinstance(value, list):
+                    records = value
+                    break
+            if not records:
+                for value in payload.values():
+                    if isinstance(value, list):
+                        records = value
+                        break
+        else:
+            records = []
+        posts = [record for record in records if isinstance(record, dict)]
+        matches = [
+            post for post in posts
             if normalized_query in " ".join(str(value) for value in post.values()).casefold()
         ]
+        return matches[:limit]
 
-    def groups(self) -> list[dict[str, Any]]:
-        payload = self._get(["api/groups", "groups"])
-        records = payload if isinstance(payload, list) else payload.get("groups", payload.get("data", []))
-        return [record for record in records if isinstance(record, dict)]
+    def groups(self) -> list[str | dict[str, Any]]:
+        payload = self._get("groups")
+        if isinstance(payload, list):
+            return payload
+        if isinstance(payload, dict):
+            records = payload.get("groups", payload.get("data", []))
+            return records if isinstance(records, list) else []
+        return []
 
 
 def post_label(post: dict[str, Any]) -> str:
