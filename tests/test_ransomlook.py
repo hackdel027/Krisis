@@ -1,3 +1,4 @@
+from core.dashboard import post_group_name
 from core.ransomlook import RansomLookClient
 
 
@@ -62,3 +63,9 @@ def test_groups_handles_documented_array_of_names(monkeypatch):
     groups = client.groups()
 
     assert groups == ["lockbit", "blackcat"]
+
+
+def test_post_group_name_supports_ransomlook_group_fields():
+    assert post_group_name({"group_name": "LockBit"}) == "LockBit"
+    assert post_group_name({"group": "RansomHub"}) == "RansomHub"
+    assert post_group_name({"victim": "Organisation camerounaise"}) == ""

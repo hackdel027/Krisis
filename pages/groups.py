@@ -1,12 +1,36 @@
 import streamlit as st
 
-from core.dashboard import load_groups
+from core.dashboard import get_cameroon_posts, load_groups, post_group_name
 
 
 st.title("Groupes")
-st.subheader("Groupes ayant commis des attaques sur les entreprises au Cameroun")
+st.subheader("Groupes ayant attaqué une institution au Cameroun")
 
-for group in load_groups():
+cameroon_posts = get_cameroon_posts()
+catalog = {
+    str(group.get("name", "")).strip().casefold(): group
+    for group in load_groups()
+}
+cameroon_group_names = {}
+for post in cameroon_posts:
+    group_name = post_group_name(post)
+    if group_name:
+        cameroon_group_names.setdefault(group_name.casefold(), group_name)
+
+groups = [
+    catalog.get(group_key, {
+        "name": group_name,
+        "region": "Inconnu",
+        "status": "Observé au Cameroun",
+        "notes": "Groupe identifié dans la liste des attaques au Cameroun.",
+    })
+    for group_key, group_name in cameroon_group_names.items()
+]
+
+if not groups:
+    st.info("Aucun groupe lié à une attaque au Cameroun n'a été détecté.")
+
+for group in groups:
     group_name = group.get("name", "Groupe")
     group_region = group.get("region", "Inconnu")
     group_status = group.get("status", "Inconnu")

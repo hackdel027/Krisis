@@ -1,20 +1,14 @@
 import pandas as pd
 import streamlit as st
 
-from core.dashboard import dedupe_posts, get_posts, is_cameroon_post, post_rows, search_posts
-from core.ransomlook import RansomLookClient
+from core.dashboard import get_cameroon_posts, get_posts, post_rows
 
 
 st.title("Recent")
 st.subheader("Liste des attaques récentes")
 
 posts = get_posts()
-client = RansomLookClient(base_url="https://www.ransomlook.io")
-cameroon_posts = [post for post in posts if is_cameroon_post(post)]
-if not cameroon_posts:
-    cameroon_posts = dedupe_posts(
-        [post for keyword in ("cameroon", "cameroun") for post in search_posts(client, keyword, limit=20)]
-    )
+cameroon_posts = get_cameroon_posts(posts)
 
 recent_rows = post_rows(posts, include_classification=True)
 if recent_rows:

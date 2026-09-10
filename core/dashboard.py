@@ -26,6 +26,26 @@ def is_cameroon_post(post: dict[str, Any]) -> bool:
     return any(term in post_text(post) for term in ("cameroon", "cameroun", ".cm"))
 
 
+def post_group_name(post: dict[str, Any]) -> str:
+    for key in ("group_name", "group", "attacker", "threat_actor"):
+        value = post.get(key)
+        if value not in (None, ""):
+            return str(value).strip()
+    return ""
+
+
+def get_cameroon_posts(posts: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+    posts = get_posts() if posts is None else posts
+    cameroon_posts = [post for post in posts if is_cameroon_post(post)]
+    if cameroon_posts:
+        return dedupe_posts(cameroon_posts)
+
+    client = RansomLookClient(base_url="https://www.ransomlook.io")
+    return dedupe_posts(
+        [post for keyword in ("cameroon", "cameroun") for post in search_posts(client, keyword, limit=20)]
+    )
+
+
 def dedupe_posts(posts: list[dict[str, Any]]) -> list[dict[str, Any]]:
     seen: set[str] = set()
     unique: list[dict[str, Any]] = []
@@ -59,7 +79,7 @@ def post_rows(posts: list[dict[str, Any]], include_classification: bool = False)
     for post in posts:
         row = {
             "Victime": post.get("post_title") or post.get("title") or post.get("name") or post.get("victim") or "Sans titre",
-            "Groupe": post.get("group_name") or post.get("group") or "Inconnu",
+            "Groupe": post_group_name(post) or "Inconnu",
             "Découvert": post.get("discovered") or post.get("date") or "N/A",
         }
         if include_classification:
