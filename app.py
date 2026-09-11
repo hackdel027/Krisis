@@ -129,8 +129,9 @@ with st.sidebar:
     st.caption("Cyber threat intelligence")
 
 recent_page = st.Page("pages/recent.py", title="Recent", icon=":material/monitoring:")
+local_page = st.Page("pages/local.py", title="Local", icon=":material/location_on:")
 search_page = st.Page("pages/search.py", title="Rechercher", icon=":material/search:")
 groups_page = st.Page("pages/groups.py", title="Groupes", icon=":material/shield:")
 
-pg = st.navigation([recent_page, search_page, groups_page])
+pg = st.navigation([recent_page, local_page, search_page, groups_page])
 pg.run()
